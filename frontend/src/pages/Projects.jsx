@@ -5,6 +5,8 @@ import {
   LuPlus, LuSearch, LuPencil, LuTrash2, LuDownload, LuX, LuFolderOpen,
 } from 'react-icons/lu';
 import { format } from 'date-fns';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 const STATUS_OPTIONS = ['pending', 'in-progress', 'completed', 'cancelled', 'on-hold'];
 const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent'];
@@ -14,6 +16,8 @@ const statusBadge = (status) => <span className={`badge badge-${status}`}>{statu
 const priorityBadge = (p) => <span className={`badge badge-${p}`}>{p}</span>;
 
 export default function Projects() {
+  const { user } = useAuth();
+  const currency = user?.currency || 'LKR';
   const [projects, setProjects] = useState([]);
   const [clients, setClients] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
@@ -219,11 +223,11 @@ export default function Projects() {
                     <td>{statusBadge(p.status)}</td>
                     <td>{priorityBadge(p.priority)}</td>
                     <td style={{ textAlign: 'right' }}>
-                      <span className="amount">${p.fee?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                      <span className="amount">{formatCurrency(p.fee, currency)}</span>
                     </td>
                     <td style={{ minWidth: 120 }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: 4 }}>
-                        ${p.paidAmount?.toFixed(2)}
+                        {formatCurrency(p.paidAmount, currency)}
                         <span style={{ marginLeft: 6, fontSize: '0.68rem', color: 'var(--text-muted)', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>{paidPct}%</span>
                       </div>
                       <div className="progress-bar">

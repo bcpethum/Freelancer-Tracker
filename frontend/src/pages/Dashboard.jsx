@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { formatCurrency, getCurrencySymbol } from '../utils/currency';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -37,13 +38,13 @@ const STATUS_COLORS = {
   'on-hold': '#9ca3af'
 };
 
-const CustomBarTooltip = ({ active, payload, label }) => {
+const CustomBarTooltip = ({ active, payload, label, symbol }) => {
   if (active && payload?.length) {
     return (
       <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 13 }}>
         <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
         <div style={{ color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)' }}>
-          ${payload[0].value?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          {symbol} {payload[0].value?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
         </div>
       </div>
     );
@@ -75,6 +76,7 @@ export default function Dashboard() {
   );
 
   const { stats, monthlyIncome, projectStatusDist, recentProjects, recentPayments, topClients, upcomingDeadlines } = data || {};
+  const currency = user?.currency || 'LKR';
 
   const monthlyChartData = buildFullMonthlyData(monthlyIncome);
 
@@ -89,7 +91,7 @@ export default function Dashboard() {
   const statCards = [
     {
       label: 'Total Income',
-      value: `$${(stats?.totalIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: formatCurrency(stats?.totalIncome || 0, currency),
       icon: LuDollarSign,
       iconBg: 'rgba(34,197,94,0.12)',
       iconBorder: 'rgba(34,197,94,0.2)',
@@ -105,7 +107,7 @@ export default function Dashboard() {
     },
     {
       label: 'Pending Payments',
-      value: `$${(stats?.pendingPayments || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: formatCurrency(stats?.pendingPayments || 0, currency),
       icon: LuClock,
       iconBg: 'rgba(245,158,11,0.12)',
       iconBorder: 'rgba(245,158,11,0.2)',
@@ -195,7 +197,7 @@ export default function Dashboard() {
           display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.855rem', color: '#ef4444'
         }}>
           <LuTriangleAlert size={18} strokeWidth={ICON_STROKE} style={{ flexShrink: 0 }} />
-          <span>You have <strong>${stats.overduePayments.toFixed(2)}</strong> in overdue payments.</span>
+          <span>You have <strong>{formatCurrency(stats.overduePayments, currency)}</strong> in overdue payments.</span>
           <Link to="/payments" className="btn btn-danger btn-sm" style={{ marginLeft: 'auto' }}>Review</Link>
         </div>
       )}
@@ -217,7 +219,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <LuTrendingUp size={15} color="var(--accent-green)" strokeWidth={ICON_STROKE} />
               <span style={{ fontSize: '0.8rem', color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)' }}>
-                ${(stats?.totalIncome || 0).toLocaleString()}
+                {formatCurrency(stats?.totalIncome || 0, currency, { compact: true })}
               </span>
             </div>
           </div>
@@ -231,8 +233,8 @@ export default function Dashboard() {
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
               <XAxis dataKey="name" tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} width={48} />
-              <Tooltip content={<CustomBarTooltip />} cursor={{ fill: 'rgba(99,102,241,0.05)', radius: 6 }} />
+              <YAxis tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${getCurrencySymbol(currency)} ${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} width={52} />
+              <Tooltip content={<CustomBarTooltip symbol={getCurrencySymbol(currency)} />} cursor={{ fill: 'rgba(99,102,241,0.05)', radius: 6 }} />
               <Bar dataKey="income" fill="url(#incomeGrad)" radius={[5, 5, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -316,7 +318,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{p.client?.name}</div>
-                    <div style={{ fontSize: '0.83rem', color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)' }}>${p.fee?.toLocaleString()}</div>
+                    <div style={{ fontSize: '0.83rem', color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)' }}>{formatCurrency(p.fee, currency)}</div>
                   </div>
                 </div>
               ))}
@@ -349,7 +351,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
                     <div style={{ color: p.status === 'received' ? 'var(--accent-green)' : 'var(--accent)', fontWeight: 700, fontSize: '0.9rem', fontFamily: 'var(--font-display)' }}>
-                      ${p.amount?.toFixed(2)}
+                      {formatCurrency(p.amount, currency)}
                     </div>
                     <span className={`badge badge-${p.status}`} style={{ fontSize: '0.62rem' }}>{p.status}</span>
                   </div>
@@ -391,7 +393,7 @@ export default function Dashboard() {
                     <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.projectCount} project{c.projectCount !== 1 ? 's' : ''}</div>
                   </div>
                   <div style={{ color: 'var(--accent-green)', fontWeight: 700, fontFamily: 'var(--font-display)', fontSize: '0.875rem', flexShrink: 0 }}>
-                    ${c.totalEarned?.toLocaleString()}
+                    {formatCurrency(c.totalEarned, currency, { compact: true })}
                   </div>
                 </div>
               ))}
@@ -441,7 +443,7 @@ export default function Dashboard() {
                           <span style={{ marginLeft: 6, opacity: 0.7, fontSize: '0.72rem' }}>({days}d)</span>
                         </span>
                       </td>
-                      <td className="amount">${p.fee?.toLocaleString()}</td>
+                      <td className="amount">{formatCurrency(p.fee, currency)}</td>
                     </tr>
                   );
                 })}

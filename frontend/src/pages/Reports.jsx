@@ -9,6 +9,8 @@ import {
   LuDownload, LuFileText, LuTableProperties, LuFilter, LuDollarSign,
   LuFolderKanban, LuCheck, LuUsers, LuChartColumn, LuTrendingUp,
 } from 'react-icons/lu';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency, getCurrencySymbol } from '../utils/currency';
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const STATUS_COLORS = {
@@ -17,14 +19,14 @@ const STATUS_COLORS = {
 };
 const ICON_STROKE = 1.75;
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, symbol = 'Rs' }) => {
   if (active && payload?.length) {
     return (
       <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', fontSize: 13 }}>
         <div style={{ color: 'var(--text-muted)', marginBottom: 4 }}>{label}</div>
         {payload.map((p, i) => (
           <div key={i} style={{ color: p.color, fontWeight: 700 }}>
-            {p.name}: ${p.value?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            {p.name}: {symbol} {p.value?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
         ))}
       </div>
@@ -39,6 +41,8 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [exportLoading, setExportLoading] = useState({ csv: false, pdf: false });
   const [filters, setFilters] = useState({ startDate: '', endDate: '', clientId: '' });
+  const { user } = useAuth();
+  const currency = user?.currency || 'LKR';
 
   useEffect(() => {
     Promise.all([
@@ -110,7 +114,7 @@ export default function Reports() {
   })) || [];
 
   const kpiCards = [
-    { label: 'Total Revenue', value: `$${(stats?.totalIncome || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, icon: LuDollarSign, iconBg: 'rgba(34,197,94,0.12)', iconBorder: 'rgba(34,197,94,0.2)' },
+    { label: 'Total Revenue', value: formatCurrency(stats?.totalIncome || 0, currency), icon: LuDollarSign, iconBg: 'rgba(34,197,94,0.12)', iconBorder: 'rgba(34,197,94,0.2)' },
     { label: 'Total Projects', value: stats?.totalProjects || 0, icon: LuFolderKanban, iconBg: 'rgba(99,102,241,0.12)', iconBorder: 'rgba(99,102,241,0.2)' },
     { label: 'Completed', value: stats?.completedProjects || 0, icon: LuCheck, iconBg: 'rgba(6,182,212,0.12)', iconBorder: 'rgba(6,182,212,0.2)' },
     { label: 'Total Clients', value: stats?.totalClients || 0, icon: LuUsers, iconBg: 'rgba(245,158,11,0.12)', iconBorder: 'rgba(245,158,11,0.2)' },
@@ -225,8 +229,8 @@ export default function Reports() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} width={48} />
-                <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(99,102,241,0.2)', strokeWidth: 1 }} />
+                <YAxis tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${getCurrencySymbol(currency)} ${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} width={52} />
+                <Tooltip content={<CustomTooltip symbol={getCurrencySymbol(currency)} />} cursor={{ stroke: 'rgba(99,102,241,0.2)', strokeWidth: 1 }} />
                 <Area type="monotone" dataKey="income" name="Income" stroke="#6366f1" strokeWidth={2.5} fill="url(#areaGrad)" dot={{ fill: '#6366f1', strokeWidth: 0, r: 3 }} activeDot={{ r: 5, fill: '#818cf8' }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -309,9 +313,9 @@ export default function Reports() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} />
+                <XAxis type="number" tick={{ fill: '#6b6b80', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${getCurrencySymbol(currency)} ${v >= 1000 ? (v/1000).toFixed(0)+'k' : v}`} />
                 <YAxis type="category" dataKey="name" tick={{ fill: '#a1a1b5', fontSize: 12 }} axisLine={false} tickLine={false} width={65} />
-                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(99,102,241,0.05)' }} />
+                <Tooltip content={<CustomTooltip symbol={getCurrencySymbol(currency)} />} cursor={{ fill: 'rgba(99,102,241,0.05)' }} />
                 <Bar dataKey="earned" name="Earned" fill="url(#clientGrad)" radius={[0, 5, 5, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -394,8 +398,8 @@ export default function Reports() {
                         {c.company && <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.company}</div>}
                       </td>
                       <td style={{ color: 'var(--primary-light)', fontWeight: 600 }}>{c.projectCount}</td>
-                      <td className="amount" style={{ textAlign: 'right' }}>${c.totalEarned?.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                      <td style={{ color: 'var(--text-secondary)', textAlign: 'right' }}>${avg}</td>
+                      <td className="amount" style={{ textAlign: 'right' }}>{formatCurrency(c.totalEarned, currency)}</td>
+                      <td style={{ color: 'var(--text-secondary)', textAlign: 'right' }}>{formatCurrency(c.totalEarned / c.projectCount, currency)}</td>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <div className="progress-bar" style={{ flex: 1, maxWidth: 100 }}>

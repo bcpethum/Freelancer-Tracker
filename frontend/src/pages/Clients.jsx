@@ -3,11 +3,15 @@ import API from '../api/axios';
 import toast from 'react-hot-toast';
 import { LuPlus, LuSearch, LuPencil, LuTrash2, LuX, LuMail, LuPhone, LuUsers } from 'react-icons/lu';
 import { format } from 'date-fns';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 const STATUS_OPTIONS = ['active', 'inactive', 'prospect'];
 const ICON_STROKE = 1.75;
 
 export default function Clients() {
+  const { user } = useAuth();
+  const currency = user?.currency || 'LKR';
   const [clients, setClients] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
@@ -203,7 +207,7 @@ export default function Clients() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1px 1fr', gap: 0, padding: '12px 14px', background: 'var(--bg-input)', borderRadius: 10, marginBottom: 16, border: '1px solid var(--border)' }}>
                 <div style={{ textAlign: 'center', paddingRight: 8 }}>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, color: 'var(--accent-green)', fontSize: '1rem', lineHeight: 1.2 }}>
-                    ${c.totalEarned?.toLocaleString() || 0}
+                    {formatCurrency(c.totalEarned || 0, currency)}
                   </div>
                   <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: 2 }}>Total Earned</div>
                 </div>

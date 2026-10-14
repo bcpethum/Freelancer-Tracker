@@ -6,12 +6,12 @@ import {
   LuUser, LuMail, LuBriefcase, LuDollarSign, LuLock, LuSave, LuShield, LuBuilding2,
 } from 'react-icons/lu';
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'SGD', 'AED'];
+const CURRENCIES = ['LKR', 'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD', 'SGD', 'AED'];
 const ICON_STROKE = 1.75;
 
 export default function Profile() {
   const { user, updateUser } = useAuth();
-  const [profileForm, setProfileForm] = useState({ name: user?.name || '', profession: user?.profession || '', currency: user?.currency || 'USD' });
+  const [profileForm, setProfileForm] = useState({ name: user?.name || '', profession: user?.profession || '', currency: user?.currency || 'LKR' });
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [profileLoading, setProfileLoading] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
@@ -88,7 +88,7 @@ export default function Profile() {
                 <LuBriefcase size={13} strokeWidth={ICON_STROKE} /> {user?.profession || 'Freelancer'}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                <LuDollarSign size={13} strokeWidth={ICON_STROKE} /> {user?.currency || 'USD'}
+                <LuDollarSign size={13} strokeWidth={ICON_STROKE} /> {user?.currency || 'LKR'}
               </span>
             </div>
             <div style={{ marginTop: 8, fontSize: '0.72rem', color: 'var(--text-muted)' }}>

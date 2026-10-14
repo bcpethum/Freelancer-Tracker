@@ -3,6 +3,8 @@ import API from '../api/axios';
 import toast from 'react-hot-toast';
 import { LuPlus, LuPencil, LuTrash2, LuX, LuDollarSign, LuClock, LuTriangleAlert, LuCreditCard } from 'react-icons/lu';
 import { format } from 'date-fns';
+import { useAuth } from '../context/AuthContext';
+import { formatCurrency } from '../utils/currency';
 
 const STATUS_OPTIONS = ['pending', 'received', 'overdue', 'cancelled'];
 const PAYMENT_METHODS = ['bank_transfer', 'paypal', 'stripe', 'cash', 'check', 'crypto', 'other'];
@@ -12,6 +14,8 @@ const methodLabel = (m) => m.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCa
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
+  const { user } = useAuth();
+  const currency = user?.currency || 'LKR';
   const [projects, setProjects] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [totalReceived, setTotalReceived] = useState(0);
@@ -111,15 +115,15 @@ export default function Payments() {
 
   const summaryCards = [
     {
-      label: 'Total Received', value: `$${totalReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      label: 'Total Received', value: formatCurrency(totalReceived, currency),
       icon: LuDollarSign, iconBg: 'rgba(34,197,94,0.12)', iconBorder: 'rgba(34,197,94,0.2)',
     },
     {
-      label: 'Pending', value: `$${pendingTotal.toFixed(2)}`,
+      label: 'Pending', value: formatCurrency(pendingTotal, currency),
       icon: LuClock, iconBg: 'rgba(245,158,11,0.12)', iconBorder: 'rgba(245,158,11,0.2)',
     },
     {
-      label: 'Overdue', value: `$${overdueTotal.toFixed(2)}`,
+      label: 'Overdue', value: formatCurrency(overdueTotal, currency),
       icon: LuTriangleAlert, iconBg: 'rgba(239,68,68,0.12)', iconBorder: 'rgba(239,68,68,0.2)',
     },
   ];
@@ -232,7 +236,7 @@ export default function Payments() {
                     <span className="truncate" style={{ display: 'block' }}>{p.client?.name}</span>
                   </td>
                   <td className={p.status === 'received' ? 'amount' : 'amount-pending'} style={{ textAlign: 'right' }}>
-                    ${p.amount?.toFixed(2)}
+                    {formatCurrency(p.amount, currency)}
                   </td>
                   <td><span style={{ fontSize: '0.8rem' }}>{methodLabel(p.paymentMethod || 'bank_transfer')}</span></td>
                   <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
