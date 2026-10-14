@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
-import { MdAdd, MdSearch, MdEdit, MdDelete, MdClose, MdFilterList } from 'react-icons/md';
+import { LuPlus, LuPencil, LuTrash2, LuX, LuDollarSign, LuClock, LuTriangleAlert, LuCreditCard } from 'react-icons/lu';
 import { format } from 'date-fns';
 
 const STATUS_OPTIONS = ['pending', 'received', 'overdue', 'cancelled'];
 const PAYMENT_METHODS = ['bank_transfer', 'paypal', 'stripe', 'cash', 'check', 'crypto', 'other'];
+const ICON_STROKE = 1.75;
 
 const methodLabel = (m) => m.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase());
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
   const [projects, setProjects] = useState([]);
-  const [clients, setClients] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [totalReceived, setTotalReceived] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -42,13 +42,7 @@ export default function Payments() {
 
   useEffect(() => { fetchPayments(); }, [fetchPayments]);
   useEffect(() => {
-    Promise.all([
-      API.get('/projects?limit=100'),
-      API.get('/clients?limit=100')
-    ]).then(([pr, cl]) => {
-      setProjects(pr.data.data);
-      setClients(cl.data.data);
-    }).catch(() => {});
+    API.get('/projects?limit=100').then(pr => setProjects(pr.data.data)).catch(() => {});
   }, []);
 
   const openCreate = () => {
@@ -115,92 +109,132 @@ export default function Payments() {
   const pendingTotal = payments.filter(p => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
   const overdueTotal = payments.filter(p => p.status === 'overdue').reduce((s, p) => s + p.amount, 0);
 
+  const summaryCards = [
+    {
+      label: 'Total Received', value: `$${totalReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
+      icon: LuDollarSign, iconBg: 'rgba(34,197,94,0.12)', iconBorder: 'rgba(34,197,94,0.2)',
+    },
+    {
+      label: 'Pending', value: `$${pendingTotal.toFixed(2)}`,
+      icon: LuClock, iconBg: 'rgba(245,158,11,0.12)', iconBorder: 'rgba(245,158,11,0.2)',
+    },
+    {
+      label: 'Overdue', value: `$${overdueTotal.toFixed(2)}`,
+      icon: LuTriangleAlert, iconBg: 'rgba(239,68,68,0.12)', iconBorder: 'rgba(239,68,68,0.2)',
+    },
+  ];
+
   return (
     <div>
+      {/* Header */}
       <div className="section-header mb-6">
         <div>
-          <div className="section-title" style={{ fontSize: '1.5rem' }}>Payments</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>Payments</div>
           <div className="section-subtitle">{pagination.total} payment records</div>
         </div>
         <button id="create-payment-btn" className="btn btn-primary" onClick={openCreate}>
-          <MdAdd size={18} /> Record Payment
+          <LuPlus size={16} strokeWidth={ICON_STROKE} /> Record Payment
         </button>
       </div>
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20, marginBottom: 28 }}>
-        {[
-          { label: 'Total Received', value: `$${totalReceived.toLocaleString('en-US', { minimumFractionDigits: 2 })}`, color: '#10b981', bg: 'rgba(16,185,129,0.1)', icon: '💰' },
-          { label: 'Pending', value: `$${pendingTotal.toFixed(2)}`, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: '⏳' },
-          { label: 'Overdue', value: `$${overdueTotal.toFixed(2)}`, color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: '⚠️' },
-        ].map((card, i) => (
-          <div key={i} className="stat-card">
-            <div className="stat-card-icon" style={{ background: card.bg, color: card.color, fontSize: '1.3rem' }}>{card.icon}</div>
-            <div className="stat-value" style={{ color: card.color }}>{card.value}</div>
-            <div className="stat-label">{card.label}</div>
-          </div>
-        ))}
+        {summaryCards.map((card, i) => {
+          const IconComp = card.icon;
+          return (
+            <div key={i} className="stat-card">
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: card.iconBg, border: `1px solid ${card.iconBorder}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14,
+              }}>
+                <IconComp size={20} color="#ffffff" strokeWidth={ICON_STROKE} />
+              </div>
+              <div className="stat-value">{card.value}</div>
+              <div className="stat-label">{card.label}</div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Filters */}
       <div className="filters-bar">
-        <select className="form-control filter-select" value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1); }}>
+        <select
+          className="form-control filter-select"
+          value={filterStatus}
+          onChange={e => { setFilterStatus(e.target.value); setPage(1); }}
+          aria-label="Filter by status"
+        >
           <option value="">All Status</option>
           {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.replace(/\b\w/g, c => c.toUpperCase())}</option>)}
         </select>
-        <select className="form-control filter-select" style={{ minWidth: 200 }} value={filterProject} onChange={e => { setFilterProject(e.target.value); setPage(1); }}>
+        <select
+          className="form-control filter-select"
+          style={{ minWidth: 200 }}
+          value={filterProject}
+          onChange={e => { setFilterProject(e.target.value); setPage(1); }}
+          aria-label="Filter by project"
+        >
           <option value="">All Projects</option>
           {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
         </select>
         {(filterStatus || filterProject) && (
-          <button className="btn btn-ghost btn-sm" onClick={() => { setFilterStatus(''); setFilterProject(''); setPage(1); }}>
-            <MdClose size={16} /> Clear
+          <button className="btn btn-ghost btn-sm" onClick={() => { setFilterStatus(''); setFilterProject(''); setPage(1); }} aria-label="Clear filters">
+            <LuX size={14} strokeWidth={ICON_STROKE} /> Clear
           </button>
         )}
       </div>
 
       {/* Table */}
-      <div className="card" style={{ padding: 0 }}>
-        <div className="table-container">
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="table-container" style={{ border: 'none', borderRadius: 'var(--radius-lg)' }}>
           <table className="data-table">
             <thead>
               <tr>
                 <th>Invoice #</th>
                 <th>Project</th>
                 <th>Client</th>
-                <th>Amount</th>
+                <th style={{ textAlign: 'right' }}>Amount</th>
                 <th>Method</th>
                 <th>Status</th>
                 <th>Date</th>
                 <th>Due Date</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'center' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 Array(5).fill(0).map((_, i) => (
-                  <tr key={i}><td colSpan={9}><div className="skeleton" style={{ height: 20, margin: '8px 0' }} /></td></tr>
+                  <tr key={i}>
+                    {Array(9).fill(0).map((_, j) => (
+                      <td key={j}><div className="skeleton" style={{ height: 16, borderRadius: 6 }} /></td>
+                    ))}
+                  </tr>
                 ))
               ) : payments.length === 0 ? (
                 <tr><td colSpan={9}>
                   <div className="empty-state">
-                    <div className="empty-icon">💰</div>
+                    <div className="empty-icon"><LuCreditCard size={26} strokeWidth={ICON_STROKE} /></div>
                     <div className="empty-title">No payments found</div>
                     <div className="empty-desc">Record your first payment to start tracking income</div>
-                    <button className="btn btn-primary btn-sm" onClick={openCreate}>+ Record Payment</button>
+                    <button className="btn btn-primary btn-sm" onClick={openCreate}><LuPlus size={14} strokeWidth={ICON_STROKE} /> Record Payment</button>
                   </div>
                 </td></tr>
               ) : payments.map(p => (
                 <tr key={p._id}>
-                  <td style={{ color: 'var(--primary-light)', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                  <td style={{ color: 'var(--primary-light)', fontFamily: 'monospace', fontSize: '0.78rem' }}>
                     {p.invoiceNumber || `INV-${p._id.slice(-6).toUpperCase()}`}
                   </td>
-                  <td className="primary">{p.project?.name}</td>
-                  <td>{p.client?.name}</td>
-                  <td className={p.status === 'received' ? 'amount' : 'amount-pending'}>
+                  <td className="primary" style={{ maxWidth: 140 }}>
+                    <span className="truncate" style={{ display: 'block' }}>{p.project?.name}</span>
+                  </td>
+                  <td style={{ maxWidth: 120 }}>
+                    <span className="truncate" style={{ display: 'block' }}>{p.client?.name}</span>
+                  </td>
+                  <td className={p.status === 'received' ? 'amount' : 'amount-pending'} style={{ textAlign: 'right' }}>
                     ${p.amount?.toFixed(2)}
                   </td>
-                  <td><span className="text-sm">{methodLabel(p.paymentMethod || 'bank_transfer')}</span></td>
+                  <td><span style={{ fontSize: '0.8rem' }}>{methodLabel(p.paymentMethod || 'bank_transfer')}</span></td>
                   <td><span className={`badge badge-${p.status}`}>{p.status}</span></td>
                   <td style={{ fontSize: '0.8rem' }}>
                     {p.receivedDate ? format(new Date(p.receivedDate), 'MMM dd, yyyy') : (p.createdAt ? format(new Date(p.createdAt), 'MMM dd, yyyy') : '—')}
@@ -213,9 +247,25 @@ export default function Payments() {
                     ) : '—'}
                   </td>
                   <td>
-                    <div className="actions">
-                      <button className="btn btn-ghost btn-icon" title="Edit" onClick={() => openEdit(p)}><MdEdit /></button>
-                      <button className="btn btn-danger btn-icon btn-sm" title="Delete" onClick={() => setDeleteId(p._id)}><MdDelete /></button>
+                    <div className="actions" style={{ justifyContent: 'center' }}>
+                      <button
+                        className="btn btn-ghost btn-icon"
+                        title="Edit"
+                        aria-label="Edit payment"
+                        onClick={() => openEdit(p)}
+                        style={{ width: 32, height: 32 }}
+                      >
+                        <LuPencil size={15} strokeWidth={ICON_STROKE} />
+                      </button>
+                      <button
+                        className="btn btn-danger btn-icon"
+                        title="Delete"
+                        aria-label="Delete payment"
+                        onClick={() => setDeleteId(p._id)}
+                        style={{ width: 32, height: 32 }}
+                      >
+                        <LuTrash2 size={15} strokeWidth={ICON_STROKE} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -228,11 +278,11 @@ export default function Payments() {
       {/* Pagination */}
       {pagination.pages > 1 && (
         <div className="pagination">
-          <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹</button>
+          <button className="page-btn" disabled={page === 1} onClick={() => setPage(p => p - 1)} aria-label="Previous page">‹</button>
           {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(n => (
             <button key={n} className={`page-btn ${n === page ? 'active' : ''}`} onClick={() => setPage(n)}>{n}</button>
           ))}
-          <button className="page-btn" disabled={page === pagination.pages} onClick={() => setPage(p => p + 1)}>›</button>
+          <button className="page-btn" disabled={page === pagination.pages} onClick={() => setPage(p => p + 1)} aria-label="Next page">›</button>
         </div>
       )}
 
@@ -241,8 +291,10 @@ export default function Payments() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
           <div className="modal modal-lg animate-slide-up">
             <div className="modal-header">
-              <div className="modal-title">{editPayment ? '✏️ Edit Payment' : '💰 Record Payment'}</div>
-              <button className="modal-close" onClick={() => setModalOpen(false)}><MdClose /></button>
+              <div className="modal-title">{editPayment ? 'Edit Payment' : 'Record Payment'}</div>
+              <button className="modal-close" onClick={() => setModalOpen(false)} aria-label="Close modal">
+                <LuX size={18} strokeWidth={ICON_STROKE} />
+              </button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-row">
@@ -252,12 +304,12 @@ export default function Payments() {
                     <option value="">Select project</option>
                     {projects.map(p => <option key={p._id} value={p._id}>{p.name}</option>)}
                   </select>
-                  {formErrors.project && <div className="form-error">⚠ {formErrors.project}</div>}
+                  {formErrors.project && <div className="form-error">{formErrors.project}</div>}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Amount ($) <span className="required">*</span></label>
                   <input className="form-control" id="payment-amount" type="number" min="0.01" step="0.01" placeholder="0.00" value={form.amount} onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} />
-                  {formErrors.amount && <div className="form-error">⚠ {formErrors.amount}</div>}
+                  {formErrors.amount && <div className="form-error">{formErrors.amount}</div>}
                 </div>
               </div>
               <div className="form-row">
@@ -308,13 +360,15 @@ export default function Payments() {
       {/* Delete Confirm */}
       {deleteId && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setDeleteId(null)}>
-          <div className="modal animate-slide-up" style={{ maxWidth: 420 }}>
-            <div className="confirm-icon">🗑️</div>
-            <h3 style={{ textAlign: 'center', marginBottom: 12 }}>Delete Payment?</h3>
-            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.875rem', marginBottom: 24 }}>
+          <div className="modal animate-slide-up" style={{ maxWidth: 400 }}>
+            <div className="confirm-icon">
+              <LuTrash2 size={26} strokeWidth={ICON_STROKE} />
+            </div>
+            <h3 style={{ textAlign: 'center', marginBottom: 10, fontSize: '1.1rem' }}>Delete Payment?</h3>
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.855rem', lineHeight: 1.6 }}>
               This will reverse the payment amount from the project's paid total.
             </p>
-            <div className="modal-footer" style={{ paddingTop: 0, borderTop: 'none' }}>
+            <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setDeleteId(null)}>Cancel</button>
               <button className="btn btn-danger" onClick={handleDelete}>Delete Payment</button>
             </div>

@@ -1,5 +1,6 @@
-import { useLocation } from 'react-router-dom';
-import { MdMenu } from 'react-icons/md';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { LuMenu, LuCalendarDays } from 'react-icons/lu';
+import { useAuth } from '../../context/AuthContext';
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -21,10 +22,13 @@ const pageSubtitles = {
 
 export default function Topbar({ onMenuClick }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const title = pageTitles[location.pathname] || 'FreelanceTrack';
   const subtitle = pageSubtitles[location.pathname] || '';
   const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const initials = user?.name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || 'FT';
 
   return (
     <header className="topbar">
@@ -32,21 +36,31 @@ export default function Topbar({ onMenuClick }) {
         <button
           className="btn btn-ghost btn-icon"
           onClick={onMenuClick}
-          style={{ display: 'none' }}
           id="menu-btn"
-          aria-label="Open menu"
+          aria-label="Open sidebar menu"
+          style={{ display: 'none' }}
         >
-          <MdMenu size={22} />
+          <LuMenu size={22} strokeWidth={1.75} />
         </button>
         <div>
           <div className="page-title">{title}</div>
-          <div className="text-xs text-muted">{subtitle}</div>
+          <div className="page-subtitle">{subtitle}</div>
         </div>
       </div>
       <div className="topbar-right">
-        <div className="text-sm text-muted" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <span style={{ opacity: 0.5 }}>📅</span>
-          {dateStr}
+        <div className="topbar-date">
+          <LuCalendarDays size={14} strokeWidth={1.75} />
+          <span>{dateStr}</span>
+        </div>
+        <div
+          className="topbar-avatar"
+          onClick={() => navigate('/profile')}
+          role="button"
+          tabIndex={0}
+          aria-label="Go to profile"
+          title={user?.name || 'Profile'}
+        >
+          {initials}
         </div>
       </div>
       <style>{`

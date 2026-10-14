@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { LuBriefcase, LuMail, LuLock, LuEye, LuEyeOff, LuCircleAlert, LuArrowRight } from 'react-icons/lu';
+
+const ICON_STROKE = 1.75;
 
 export default function Login() {
   const { login } = useAuth();
@@ -28,7 +30,7 @@ export default function Login() {
     setLoading(true);
     try {
       await login(form.email, form.password);
-      toast.success('Welcome back! 👋');
+      toast.success('Welcome back!');
       navigate('/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed. Please try again.';
@@ -52,18 +54,21 @@ export default function Login() {
       </div>
       <div className="auth-card">
         <div className="auth-header">
-          <div className="auth-logo">💼</div>
+          <div className="auth-logo">
+            <LuBriefcase size={22} color="#ffffff" strokeWidth={ICON_STROKE} />
+          </div>
           <h1 className="auth-title">Welcome back</h1>
           <p className="auth-subtitle">Sign in to your FreelanceTrack account</p>
         </div>
 
         {errors.general && (
           <div style={{
-            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-            borderRadius: 12, padding: '12px 16px', marginBottom: 20,
-            color: '#ef4444', fontSize: '0.875rem'
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 10, padding: '11px 14px', marginBottom: 20,
+            color: '#ef4444', fontSize: '0.855rem', display: 'flex', alignItems: 'center', gap: 8,
           }}>
-            ⚠️ {errors.general}
+            <LuCircleAlert size={15} strokeWidth={ICON_STROKE} style={{ flexShrink: 0 }} />
+            {errors.general}
           </div>
         )}
 
@@ -71,7 +76,7 @@ export default function Login() {
           <div className="form-group">
             <label className="form-label" htmlFor="login-email">Email <span className="required">*</span></label>
             <div className="input-wrapper">
-              <MdEmail className="input-icon" />
+              <span className="input-icon"><LuMail size={14} strokeWidth={ICON_STROKE} /></span>
               <input
                 id="login-email"
                 className="form-control"
@@ -83,13 +88,13 @@ export default function Login() {
                 autoComplete="email"
               />
             </div>
-            {errors.email && <div className="form-error">⚠ {errors.email}</div>}
+            {errors.email && <div className="form-error">{errors.email}</div>}
           </div>
 
           <div className="form-group">
             <label className="form-label" htmlFor="login-password">Password <span className="required">*</span></label>
             <div className="input-wrapper" style={{ position: 'relative' }}>
-              <MdLock className="input-icon" />
+              <span className="input-icon"><LuLock size={14} strokeWidth={ICON_STROKE} /></span>
               <input
                 id="login-password"
                 className="form-control"
@@ -107,14 +112,17 @@ export default function Login() {
                 style={{
                   position: 'absolute', right: 12, top: '50%',
                   transform: 'translateY(-50%)', background: 'none',
-                  border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem'
+                  border: 'none', color: 'var(--text-muted)', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', padding: 4,
                 }}
                 aria-label="Toggle password visibility"
               >
-                {showPass ? <MdVisibilityOff /> : <MdVisibility />}
+                {showPass
+                  ? <LuEyeOff size={15} strokeWidth={ICON_STROKE} />
+                  : <LuEye size={15} strokeWidth={ICON_STROKE} />}
               </button>
             </div>
-            {errors.password && <div className="form-error">⚠ {errors.password}</div>}
+            {errors.password && <div className="form-error">{errors.password}</div>}
           </div>
 
           <button
@@ -124,11 +132,17 @@ export default function Login() {
             disabled={loading}
             style={{ marginTop: 8 }}
           >
-            {loading ? <><div className="spinner" /> Signing in...</> : '🚀 Sign In'}
+            {loading
+              ? <><div className="spinner" /> Signing in...</>
+              : <><LuArrowRight size={16} strokeWidth={ICON_STROKE} /> Sign In</>}
           </button>
         </form>
 
-        <div className="divider"><div className="divider-line" /><span className="divider-text">or</span><div className="divider-line" /></div>
+        <div className="divider">
+          <div className="divider-line" />
+          <span className="divider-text">or</span>
+          <div className="divider-line" />
+        </div>
 
         <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Don't have an account?{' '}

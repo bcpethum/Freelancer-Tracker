@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import { MdEmail, MdLock, MdPerson, MdWork, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { LuBriefcase, LuMail, LuLock, LuUser, LuEye, LuEyeOff, LuCircleAlert, LuUserPlus } from 'react-icons/lu';
+
+const ICON_STROKE = 1.75;
 
 export default function Register() {
   const { register } = useAuth();
@@ -32,7 +34,7 @@ export default function Register() {
     setLoading(true);
     try {
       await register({ name: form.name, email: form.email, password: form.password, profession: form.profession });
-      toast.success('Account created! Welcome to FreelanceTrack 🎉');
+      toast.success('Account created! Welcome to FreelanceTrack');
       navigate('/');
     } catch (err) {
       const msg = err.response?.data?.message || 'Registration failed. Please try again.';
@@ -62,7 +64,7 @@ export default function Register() {
 
   const strength = passwordStrength();
   const strengthLabel = ['', 'Very Weak', 'Weak', 'Fair', 'Good', 'Strong'][strength];
-  const strengthColor = ['', '#ef4444', '#f97316', '#f59e0b', '#10b981', '#10b981'][strength];
+  const strengthColor = ['', '#ef4444', '#f97316', '#f59e0b', '#22c55e', '#22c55e'][strength];
 
   return (
     <div className="auth-page">
@@ -72,14 +74,21 @@ export default function Register() {
       </div>
       <div className="auth-card" style={{ maxWidth: 500 }}>
         <div className="auth-header">
-          <div className="auth-logo">🚀</div>
+          <div className="auth-logo">
+            <LuBriefcase size={22} color="#ffffff" strokeWidth={ICON_STROKE} />
+          </div>
           <h1 className="auth-title">Create account</h1>
           <p className="auth-subtitle">Start tracking your freelance business</p>
         </div>
 
         {errors.general && (
-          <div style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 12, padding: '12px 16px', marginBottom: 20, color: '#ef4444', fontSize: '0.875rem' }}>
-            ⚠️ {errors.general}
+          <div style={{
+            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 10, padding: '11px 14px', marginBottom: 20,
+            color: '#ef4444', fontSize: '0.855rem', display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            <LuCircleAlert size={15} strokeWidth={ICON_STROKE} style={{ flexShrink: 0 }} />
+            {errors.general}
           </div>
         )}
 
@@ -88,15 +97,15 @@ export default function Register() {
             <div className="form-group">
               <label className="form-label" htmlFor="reg-name">Full Name <span className="required">*</span></label>
               <div className="input-wrapper">
-                <MdPerson className="input-icon" />
+                <span className="input-icon"><LuUser size={14} strokeWidth={ICON_STROKE} /></span>
                 <input id="reg-name" className="form-control" type="text" name="name" placeholder="John Doe" value={form.name} onChange={handleChange} autoComplete="name" />
               </div>
-              {errors.name && <div className="form-error">⚠ {errors.name}</div>}
+              {errors.name && <div className="form-error">{errors.name}</div>}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="reg-profession">Profession</label>
               <div className="input-wrapper">
-                <MdWork className="input-icon" />
+                <span className="input-icon"><LuBriefcase size={14} strokeWidth={ICON_STROKE} /></span>
                 <input id="reg-profession" className="form-control" type="text" name="profession" placeholder="e.g. Web Developer" value={form.profession} onChange={handleChange} />
               </div>
             </div>
@@ -105,50 +114,77 @@ export default function Register() {
           <div className="form-group">
             <label className="form-label" htmlFor="reg-email">Email <span className="required">*</span></label>
             <div className="input-wrapper">
-              <MdEmail className="input-icon" />
+              <span className="input-icon"><LuMail size={14} strokeWidth={ICON_STROKE} /></span>
               <input id="reg-email" className="form-control" type="email" name="email" placeholder="your@email.com" value={form.email} onChange={handleChange} autoComplete="email" />
             </div>
-            {errors.email && <div className="form-error">⚠ {errors.email}</div>}
+            {errors.email && <div className="form-error">{errors.email}</div>}
           </div>
 
           <div className="form-row">
             <div className="form-group">
               <label className="form-label" htmlFor="reg-password">Password <span className="required">*</span></label>
               <div className="input-wrapper" style={{ position: 'relative' }}>
-                <MdLock className="input-icon" />
-                <input id="reg-password" className="form-control" type={showPass ? 'text' : 'password'} name="password" placeholder="Min 6 characters" value={form.password} onChange={handleChange} autoComplete="new-password" style={{ paddingRight: 42 }} />
-                <button type="button" onClick={() => setShowPass(p => !p)} style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.1rem' }}>
-                  {showPass ? <MdVisibilityOff /> : <MdVisibility />}
+                <span className="input-icon"><LuLock size={14} strokeWidth={ICON_STROKE} /></span>
+                <input
+                  id="reg-password"
+                  className="form-control"
+                  type={showPass ? 'text' : 'password'}
+                  name="password"
+                  placeholder="Min 6 characters"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  style={{ paddingRight: 42 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(p => !p)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 4 }}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPass ? <LuEyeOff size={15} strokeWidth={ICON_STROKE} /> : <LuEye size={15} strokeWidth={ICON_STROKE} />}
                 </button>
               </div>
               {form.password && (
                 <div style={{ marginTop: 6 }}>
                   <div style={{ display: 'flex', gap: 4, marginBottom: 4 }}>
                     {[1,2,3,4,5].map(i => (
-                      <div key={i} style={{ flex: 1, height: 4, borderRadius: 2, background: i <= strength ? strengthColor : 'var(--border)', transition: 'background 0.3s' }} />
+                      <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= strength ? strengthColor : 'var(--border)', transition: 'background 0.25s' }} />
                     ))}
                   </div>
                   <div style={{ fontSize: '0.72rem', color: strengthColor }}>{strengthLabel}</div>
                 </div>
               )}
-              {errors.password && <div className="form-error">⚠ {errors.password}</div>}
+              {errors.password && <div className="form-error">{errors.password}</div>}
             </div>
             <div className="form-group">
               <label className="form-label" htmlFor="reg-confirm">Confirm Password <span className="required">*</span></label>
               <div className="input-wrapper">
-                <MdLock className="input-icon" />
+                <span className="input-icon"><LuLock size={14} strokeWidth={ICON_STROKE} /></span>
                 <input id="reg-confirm" className="form-control" type={showPass ? 'text' : 'password'} name="confirmPassword" placeholder="Re-enter password" value={form.confirmPassword} onChange={handleChange} autoComplete="new-password" />
               </div>
-              {errors.confirmPassword && <div className="form-error">⚠ {errors.confirmPassword}</div>}
+              {errors.confirmPassword && <div className="form-error">{errors.confirmPassword}</div>}
             </div>
           </div>
 
-          <button id="register-submit" className="btn btn-primary btn-full btn-lg" type="submit" disabled={loading} style={{ marginTop: 8 }}>
-            {loading ? <><div className="spinner" /> Creating account...</> : '✨ Create Account'}
+          <button
+            id="register-submit"
+            className="btn btn-primary btn-full btn-lg"
+            type="submit"
+            disabled={loading}
+            style={{ marginTop: 8 }}
+          >
+            {loading
+              ? <><div className="spinner" /> Creating account...</>
+              : <><LuUserPlus size={16} strokeWidth={ICON_STROKE} /> Create Account</>}
           </button>
         </form>
 
-        <div className="divider"><div className="divider-line" /><span className="divider-text">or</span><div className="divider-line" /></div>
+        <div className="divider">
+          <div className="divider-line" />
+          <span className="divider-text">or</span>
+          <div className="divider-line" />
+        </div>
         <p style={{ textAlign: 'center', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
           Already have an account?{' '}
           <Link to="/login" className="auth-link">Sign in</Link>

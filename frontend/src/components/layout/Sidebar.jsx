@@ -1,22 +1,25 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
-  MdDashboard, MdWork, MdPeople, MdPayment,
-  MdBarChart, MdPerson, MdLogout
-} from 'react-icons/md';
+  LuLayoutDashboard, LuBriefcase, LuUsers, LuCreditCard,
+  LuChartColumn, LuUser, LuDoorOpen,
+} from 'react-icons/lu';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/', icon: <MdDashboard />, label: 'Dashboard', end: true },
-  { to: '/projects', icon: <MdWork />, label: 'Projects' },
-  { to: '/clients', icon: <MdPeople />, label: 'Clients' },
-  { to: '/payments', icon: <MdPayment />, label: 'Payments' },
-  { to: '/reports', icon: <MdBarChart />, label: 'Reports' },
+  { to: '/', icon: LuLayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/projects', icon: LuBriefcase, label: 'Projects' },
+  { to: '/clients', icon: LuUsers, label: 'Clients' },
+  { to: '/payments', icon: LuCreditCard, label: 'Payments' },
+  { to: '/reports', icon: LuChartColumn, label: 'Reports' },
 ];
 
 const accountItems = [
-  { to: '/profile', icon: <MdPerson />, label: 'Profile' },
+  { to: '/profile', icon: LuUser, label: 'Profile' },
 ];
+
+const ICON_SIZE = 18;
+const ICON_STROKE = 1.75;
 
 export default function Sidebar({ onClose }) {
   const { user, logout } = useAuth();
@@ -32,42 +35,59 @@ export default function Sidebar({ onClose }) {
 
   return (
     <>
+      {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon">💼</div>
+        <div className="logo-icon">
+          <LuBriefcase size={18} color="#ffffff" strokeWidth={ICON_STROKE} />
+        </div>
         <span className="logo-text">FreelanceTrack</span>
       </div>
 
-      <nav className="sidebar-nav">
+      {/* Navigation */}
+      <nav className="sidebar-nav" aria-label="Main navigation">
         <div className="nav-section-title">Main Menu</div>
-        {navItems.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.end}
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={onClose}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {navItems.map(item => {
+          const IconComp = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={onClose}
+              aria-label={item.label}
+            >
+              <span className="nav-icon">
+                <IconComp size={ICON_SIZE} strokeWidth={ICON_STROKE} />
+              </span>
+              <span className="nav-label">{item.label}</span>
+            </NavLink>
+          );
+        })}
 
         <div className="nav-section-title" style={{ marginTop: 8 }}>Account</div>
-        {accountItems.map(item => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            onClick={onClose}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </NavLink>
-        ))}
+        {accountItems.map(item => {
+          const IconComp = item.icon;
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              onClick={onClose}
+              aria-label={item.label}
+            >
+              <span className="nav-icon">
+                <IconComp size={ICON_SIZE} strokeWidth={ICON_STROKE} />
+              </span>
+              <span className="nav-label">{item.label}</span>
+            </NavLink>
+          );
+        })}
       </nav>
 
+      {/* Footer */}
       <div className="sidebar-footer">
-        <div className="user-card" onClick={() => navigate('/profile')}>
+        <div className="user-card" onClick={() => navigate('/profile')} role="button" tabIndex={0} aria-label="Go to profile">
           <div className="avatar">{initials}</div>
           <div className="user-info">
             <div className="user-name">{user?.name}</div>
@@ -75,12 +95,15 @@ export default function Sidebar({ onClose }) {
           </div>
         </div>
         <button
-          className="nav-link w-full mt-2"
+          className="nav-link w-full"
+          style={{ marginTop: 4, color: 'var(--accent-red)', borderColor: 'rgba(239,68,68,0.15)', background: 'rgba(239,68,68,0.05)' }}
           onClick={handleLogout}
-          style={{ background: 'rgba(239,68,68,0.05)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.15)' }}
+          aria-label="Logout"
         >
-          <span className="nav-icon"><MdLogout /></span>
-          <span>Logout</span>
+          <span className="nav-icon">
+            <LuDoorOpen size={ICON_SIZE} strokeWidth={ICON_STROKE} />
+          </span>
+          <span className="nav-label">Logout</span>
         </button>
       </div>
     </>
