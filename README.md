@@ -161,3 +161,4 @@ freelancer-tracker/
 ## 👤 Author
 
 Built as an individual assignment for Software Engineering Team - 405.
+# Freelancer-Tracker
